@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <title>THE MAZE OF ROOMS</title>
+    <style>
+        body{
+            background-image: url('GadgetBack.jpg');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+    </style>
+
+    <script type="text/javascript" >
+        function preventBack(){window.history.forward();}
+        setTimeout("preventBack()", 0);
+        window.onunload=function(){null};
+    </script>
+
+    <script type="module">
+        const idUser = sessionStorage.getItem('idUser');
+
+        if (idUser==null){
+            $(location).attr('href', "index.html");
+        }
+        $.ajax({
+            contentType: "application/json",
+            type: 'GET',
+            url: '/dsaApp/shop/user/'+sessionStorage.getItem('idUser'),
+            //data: { get_param: 'value'},
+            dataType: 'text',
+            success: function (data) {
+                const UserInformation = $.parseJSON(data);
+                sessionStorage.setItem("name",UserInformation.name);
+                sessionStorage.setItem("surname",UserInformation.surname);
+                //sessionStorage.setItem("coins",UserInformation.coins);
+
+                $("#welcome").text(sessionStorage.getItem('name')+" "+sessionStorage.getItem('surname')+", welcome to the GADGET'S SHOP");
+                //$("#currentCoins").text("Now you have "+sessionStorage.getItem('coins')+ " libras turcas");
+            },
+            error: function () {
+            }
+        })
+    </script>
+    <script>
+        function buyGadget(idGadget) {
+            //document.getElementById("demo").innerHTML = "Hello World";
+            $.ajax({
+                type: 'PUT',
+                url: '/dsaApp/shop/gadget/buy/'+ idGadget +'/'+ sessionStorage.getItem('idUser'),
+                //data: { get_param: 'value'},
+                dataType: 'text',
+                success: function(){
+                    alert("Gadget bought!");
+                },
+                error: function(){
+                    alert("Gadget not bought!");
+                }
+            });
+        }
+        function hidebutton(element) {
+            element.style.display="none";
+        }
+        $(document).ready(function(){
+            $("#listButton").click(function(){
+                $.ajax({
+                    type: 'GET',
+                    url: '/dsaApp/shop/gadget/all',
+                    data: { get_param: 'value'},
+                    dataType: 'text',
+                    success: function(data){
+                        const json = $.parseJSON(data);
+                        var htmlLine;
+
+                        if(json.length>0) {
+                            htmlLine='<div class="row">' +
+                                '<div class="column">' +
+                                '<div class="card">' +
+                                '<img src="'+json[0].unityShape+'" style="width:100%">'+
+                                '<div class="flex-container">' +
+                                '<div><b>'+json[0].description+'</b></div><div><p>'+json[0].cost+' libras turcas</p></div>' +
+                                '</div>' +
+                                '<div class="flex-container">' +
+                                '<button type="button" class="btn btn-outline-info" onclick="buyGadget('+json[0].idGadget+')">BUY NOW</button>'+
+                                '</div>' +
+                                '</div>' +
+                                '</div>';
+
+                            for (i = 1; i < json.length; i++) {
+                                if (i % 3 == 0) {
+                                    htmlLine+='</div>' +
+                                        '<div class="row">' +
+                                        '<div class="column">' +
+                                        '<div class="card">' +
+                                        '<img src="'+json[i].unityShape+'" style="width:100%">'+
+                                        '<div class="flex-container">' +
+                                        '<div><b>'+json[i].description+'</b></div><div><p>'+json[i].cost+' libras turcas</p></div>' +
+                                        '</div>'+
+                                        '<div class="flex-container">' +
+                                        '<button type="button" class="btn btn-outline-info" onclick="buyGadget('+json[i].idGadget+')">BUY NOW</button>'+
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>';
+                                } else {
+                                    //$('#listGadgets').append('<tr><td>'+json[i].id+'</td><td>'+json[i].description+'</td><td>'+json[i].cost+'</td></tr>');
+                                    htmlLine += '<div class="column">' +
+                                        '<div class="card">' +
+                                        '<img src="'+json[i].unityShape+'" style="width:100%">' +
+                                        '<div class="flex-container">' +
+                                        '<div><b>'+json[i].description+'</b></div><div><p>'+json[i].cost+' libras turcas</p></div>' +
+                                        '</div>' +
+                                        '<div class="flex-container">' +
+                                        '<button type="button" class="btn btn-outline-info" onclick="buyGadget('+json[i].idGadget+')">BUY NOW</button>'+
+                                        '</div>' +
+                                        '</div>' +
+                                        '</div>';
+                                }
+                            }
+                            htmlLine = htmlLine+'</div>'
+                            $('#gadgetsCards').append(htmlLine);
+                        }
+                    }
+
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="cod-container" style="margin: auto; width: 90%">
+        <div class="form-header">
+            <h1 id="welcome"></h1>
+        </div>
+        <div id="currentCoins"></div><br>
+        <div>
+            <button style="width: auto;margin: auto" onclick="hidebutton(this)" type="button" class="registerButton" id="listButton">I want to see the Gadget's List...</button>
+        </div>
+        <div id="gadgetsCards"></div>
+    </div>
+
+
+</body>

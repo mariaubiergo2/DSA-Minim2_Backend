@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>THE MAZE OF ROOMS</title>
+    <style>
+        body{
+            background-image: url('RegisterBack2.png');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+    </style>
+
+    <script type="module">
+        sessionStorage.clear();
+    </script>
+    <script type="text/javascript" >
+        function preventBack(){window.history.forward();}
+        setTimeout("preventBack()", 0);
+        window.onunload=function(){null};
+    </script>
+    <script>
+        $(document).ready(function(){
+            $("#loginButton").click(function(){
+                var userMail=$("#userEmail").val();
+                var userPassword=$("#userPassword").val();
+                if(userMail==="" || userPassword===""){
+                    alert("Fulfill all the gaps!");
+                }
+                else{
+                    $.ajax({
+                        contentType: "application/json",
+                        type: 'POST',
+                        url: '/dsaApp/shop/user/login',
+                        data: JSON.stringify({"email": userMail, "password": userPassword}),
+                        dataType: 'text',
+                        success: function (data) {
+                            let idUser = $.parseJSON(data);
+                            sessionStorage.setItem("idUser",idUser.idUser);
+                            //localStorage.setItem("idUser",idUser.idUser)
+
+                            document.getElementById('userEmail').value = '';
+
+                            $(location).attr('href', "GadgetActions.html");
+                        },
+                        error: function (json) {
+                            alert("Wrong credentials!");
+                        }
+                    })
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="cod-container" style="margin: auto; width: 600px">
+        <div class="form-header">
+            <h1>
+                The maze of rooms
+            </h1>
+        </div>
+        <div class="form-content">
+            <form>
+                <div class="input-group" style="margin: auto; width: 60%; padding-top: 15px">
+                    <div class="txt_field">
+                        <input type="text" required id="userEmail">
+                        <span></span>
+                        <label>Email</label>
+                    </div>
+                    <div class="txt_field">
+                        <input type="password" required id="userPassword">
+                        <span></span>
+                        <label>Password</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin: auto; width: 60%">
+                    <button type="reset" class="registerButton" id="loginButton">Login</button>
+
+                    <div class="signup_link">
+                        You don't have an account? <a href="Register.html">Sign up!</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
