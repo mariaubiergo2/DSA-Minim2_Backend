@@ -3,7 +3,6 @@ package edu.upc.dsa.services;
 
 import edu.upc.dsa.GameManager;
 import edu.upc.dsa.GameManagerDBImpl;
-import edu.upc.dsa.GameManagerImpl;
 
 import edu.upc.dsa.exceptions.*;
 import edu.upc.dsa.models.*;
@@ -27,7 +26,7 @@ public class GameService {
     private GameManager tm;
     final static org.apache.log4j.Logger logger = Logger.getLogger(GameManagerDBImpl.class);
 
-    public GameService() throws EmailAlreadyBeingUsedException, SQLException, GadgetWithSameIdAlreadyExists {
+    public GameService() throws EmailAlreadyBeingUsedException, SQLException, GadgetWithSameIdAlreadyExists, FAQAlreadyBeingAskedException {
         this.tm = GameManagerDBImpl.getInstance();
         logger.info("Hey im here using the service");
 
@@ -41,6 +40,12 @@ public class GameService {
             this.tm.addGadget("2",8,"Espada sin filo","https://img.freepik.com/vector-premium/pixel-art-espada-vaina_475147-473.jpg");
             this.tm.addGadget("3",550,"Caminacielos","https://img.freepik.com/vector-premium/pixel-art-arcoiris-dos-nubes_475147-164.jpg?w=2000");
             this.tm.addGadget("4",2,"Percha sonica","https://media.istockphoto.com/id/1441010991/es/vector/s%C3%ADmbolo-de-pixel-art-de-poncho-de-punto-rojo-sobre-una-percha-aislada-sobre-fondo-blanco.jpg?b=1&s=612x612&w=0&k=20&c=F4wO3fjq8aXxpT2pRYj4hca3T8Zlv4ZZCtZRv5OPXJY=");
+        }
+        if(tm.numFAQs()==0){
+            this.tm.addFAQ("Where can I see my gadgets?", "Go to your profile section");
+            this.tm.addFAQ("Can I use this app in an iphone?", "This app is not available in iOS, yet!");
+            this.tm.addFAQ("Who are you?", "The developers are: Paula, Alba, Genis, Guillem and Maria");
+            this.tm.addFAQ("How do I get experience?", "Playing more and more");
         }
     }
     @GET
@@ -57,6 +62,20 @@ public class GameService {
         return Response.status(201).entity(entity).build();
 
     }
+    @GET
+    @ApiOperation(value = "Gives the FAQs", notes = "")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successful", response = FAQ.class, responseContainer="List")
+    })
+    @Path("/FAQs")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFAQs() {
+
+        List<FAQ> FAQsList = this.tm.FAQsList();
+        GenericEntity<List<FAQ>> entity = new GenericEntity<List<FAQ>>(FAQsList) {};
+        return Response.status(201).entity(entity).build();
+    }
+
     @GET
     @ApiOperation(value = "Gives the users", notes = "User list")
     @ApiResponses(value = {
@@ -214,6 +233,25 @@ public class GameService {
             return Response.status(401).build();
         }
     }
+
+    @PUT
+    @ApiOperation(value = "update a User", notes = "Updating a User")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successful"),
+            @ApiResponse(code = 401, message = "User does not exist")
+    })
+    @Path("/user/update/{idUser}")
+    public Response updateUser(UserInformation user, @PathParam("idUser") String idUser) {
+        logger.info("Update intentant ferlo");
+        try{
+            this.tm.updateUser(user, idUser);
+            return Response.status(201).build();
+        }
+        catch (SQLException e) {
+            return Response.status(401).build();
+        }
+    }
+
     @DELETE
     @ApiOperation(value = "Deletes a gadget", notes = "Deletes a gadget")
     @ApiResponses(value = {

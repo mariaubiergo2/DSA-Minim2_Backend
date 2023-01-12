@@ -4,10 +4,7 @@ package edu.upc.dsa;
 import edu.upc.dsa.CRUD.FactorySession;
 import edu.upc.dsa.CRUD.Session;
 import edu.upc.dsa.exceptions.*;
-import edu.upc.dsa.models.Credentials;
-import edu.upc.dsa.models.Gadget;
-import edu.upc.dsa.models.Purchase;
-import edu.upc.dsa.models.User;
+import edu.upc.dsa.models.*;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
@@ -38,6 +35,10 @@ public class GameManagerDBImpl implements GameManager{
     public int numGadgets() {
         return this.session.findAll(Gadget.class).size();
     }
+    @Override
+    public int numFAQs() {
+        return this.session.findAll(FAQ.class).size();
+    }
 
     @Override
     public String addUser(String name, String surname, String date, String email, String password) throws EmailAlreadyBeingUsedException, SQLException {
@@ -53,6 +54,21 @@ public class GameManagerDBImpl implements GameManager{
 
         logger.info("User cannot be added because this email is already being used :(");
         throw new EmailAlreadyBeingUsedException();
+    }
+
+    @Override
+    public void addFAQ(String q, String a) throws SQLException, FAQAlreadyBeingAskedException {
+        logger.info("Adding a FAQ...");
+        FAQ faq = new FAQ(q,a);
+        logger.info("New question: "+q);
+        try{
+            faq = (FAQ) this.session.get(FAQ.class, "questionFAQ", q);
+            logger.info("FAQ cannot be added because this question is already in the system :(");
+            throw new FAQAlreadyBeingAskedException();
+        } catch(SQLException e) {
+            this.session.save(faq);
+            logger.info("FAQ has been added correctly in DB");
+        }
     }
 
     @Override
@@ -112,6 +128,18 @@ public class GameManagerDBImpl implements GameManager{
     }
 
     @Override
+    public List<FAQ> FAQsList() {
+        logger.info("Getting all the FAQs...");
+        List<Object> preguntas = this.session.findAll(FAQ.class);
+        List<FAQ> res = new ArrayList<>();
+        for (Object o : preguntas){
+            res.add((FAQ) o);
+        }
+        logger.info("The list of FAQs has a size of "+res.size());
+        return res;
+    }
+
+    @Override
     public void addGadget(String idGadget, int cost, String description, String unityShape) throws SQLException, GadgetWithSameIdAlreadyExists {
         logger.info("Adding a gadget...");
         Gadget gadget = new Gadget(idGadget, cost, description, unityShape);
@@ -130,6 +158,29 @@ public class GameManagerDBImpl implements GameManager{
     @Override
     public void updateGadget(Gadget gadget) throws SQLException {
         this.session.update(gadget);
+    }
+
+    @Override
+    public void updateUser(UserInformation newuser, String idUser) throws SQLException {
+        User user = new User();
+        try {
+            user = (User) this.session.get(User.class, "idUser", idUser);
+            logger.info("UPDATING THE USER");
+        } catch(SQLException e) {
+            logger.info("User does not exist EXCEPTION");
+        }
+        try {
+            logger.info("UPDATING THE USER:");
+            user.setName(newuser.getName());
+            user.setSurname(newuser.getSurname());
+            user.setBirthday(newuser.getBirthday());
+            user.setEmail(newuser.getEmail());
+            user.setPassword(newuser.getPassword());
+            logger.info(user);
+            this.session.update(user);
+        } catch(SQLException e) {
+            logger.warn("Invalid Email");
+        }
     }
 
     @Override
